@@ -51,6 +51,12 @@ type TeamUI = {
     code_member3?: string
     code_member4?: string
   }
+  submissions?: {
+    surveyLink?: string | null
+    slideLink?: string | null
+    videoLink?: string | null
+    sourceCodeLink?: string | null
+  }
 }
 
 const teamCriteria: Array<{ key: TeamCriterionKey; label: string; maxScore: number; icon: any }> = [
@@ -185,6 +191,12 @@ export default function JudgesPage() {
               code_member2: t.code_member2,
               code_member3: t.code_member3,
               code_member4: t.code_member4,
+            },
+            submissions: {
+              surveyLink: t.survey_link || null,
+              slideLink: t.slide_link || null,
+              videoLink: t.video_link || null,
+              sourceCodeLink: t.source_code_link || null,
             },
           } as TeamUI
         })
@@ -522,6 +534,38 @@ export default function JudgesPage() {
                         <Badge variant="outline">{currentTeam.memberCount} thành viên</Badge>
                       </div>
                     </div>
+
+                    {/* Links bai nop */}
+                    {currentTeam.submissions && (
+                      <div className="pt-2 border-t">
+                        <h4 className="font-semibold mb-2">Bài nộp</h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                          {currentTeam.submissions.surveyLink && (
+                            <a className="text-blue-600 underline" href={currentTeam.submissions.surveyLink} target="_blank" rel="noreferrer">
+                              Phiếu khảo sát
+                            </a>
+                          )}
+                          {currentTeam.submissions.slideLink && (
+                            <a className="text-blue-600 underline" href={currentTeam.submissions.slideLink} target="_blank" rel="noreferrer">
+                              Slide trình bày
+                            </a>
+                          )}
+                          {currentTeam.submissions.videoLink && (
+                            <a className="text-blue-600 underline" href={currentTeam.submissions.videoLink} target="_blank" rel="noreferrer">
+                              Video demo
+                            </a>
+                          )}
+                          {currentTeam.submissions.sourceCodeLink && (
+                            <a className="text-blue-600 underline" href={currentTeam.submissions.sourceCodeLink} target="_blank" rel="noreferrer">
+                              Source code
+                            </a>
+                          )}
+                          {!currentTeam.submissions.surveyLink && !currentTeam.submissions.slideLink && !currentTeam.submissions.videoLink && !currentTeam.submissions.sourceCodeLink && (
+                            <span className="text-gray-500">Chưa có liên kết bài nộp</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
@@ -859,6 +903,32 @@ export default function JudgesPage() {
                                   <div>• Hiệu quả AI: {s?.ai_effectiveness ?? 0}</div>
                                   <div>• Thuyết trình: {s?.presentation ?? 0}</div>
                                   <div>• Tác động XH: {s?.social_impact ?? 0}</div>
+                                </div>
+                                <div className="mt-3 border-t pt-2">
+                                  <div className="font-medium mb-2">Điểm cá nhân</div>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
+                                    <div>
+                                      Leader: {(s?.skills_learning_leader ?? 0) + (s?.inspiration_leader ?? 0)} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_leader ?? 0}, Truyền cảm hứng: {s?.inspiration_leader ?? 0})</span>
+                                    </div>
+                                    <div>
+                                      Thành viên 1: {(s?.skills_learning_member1 ?? 0) + (s?.inspiration_member1 ?? 0)} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member1 ?? 0}, Truyền cảm hứng: {s?.inspiration_member1 ?? 0})</span>
+                                    </div>
+                                    <div>
+                                      Thành viên 2: {(s?.skills_learning_member2 ?? 0) + (s?.inspiration_member2 ?? 0)} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member2 ?? 0}, Truyền cảm hứng: {s?.inspiration_member2 ?? 0})</span>
+                                    </div>
+                                    <div>
+                                      Thành viên 3: {(s?.skills_learning_member3 ?? 0) + (s?.inspiration_member3 ?? 0)} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member3 ?? 0}, Truyền cảm hứng: {s?.inspiration_member3 ?? 0})</span>
+                                    </div>
+                                    {/** Thành viên 4 chỉ có mã code_member4, không có điểm inspiration/skills trong output mẫu? Vẫn hiển thị nếu có dữ liệu khác 0 */}
+                                    <div>
+                                      Thành viên 4: {(s?.skills_learning_member4 ?? 0) + (s?.inspiration_member4 ?? 0)} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member4 ?? 0}, Truyền cảm hứng: {s?.inspiration_member4 ?? 0})</span>
+                                    </div>
+                                  </div>
                                 </div>
                               </CardContent>
                             </Card>

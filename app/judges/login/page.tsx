@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,6 +15,17 @@ export default function JudgesLoginPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const userRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    // Nếu đã đăng nhập rồi thì chuyển thẳng vào dashboard
+    try {
+      const raw = localStorage.getItem("judge_profile")
+      if (raw) router.replace("/judges")
+    } catch {}
+    // Focus vào ô username
+    userRef.current?.focus()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,6 +41,8 @@ export default function JudgesLoginPage() {
         headers: {
           accept: "application/json",
         },
+        mode: "cors",
+        cache: "no-store",
       })
 
       if (!res.ok) {
@@ -73,6 +86,8 @@ export default function JudgesLoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-9"
+                  autoComplete="username"
+                  ref={userRef}
                   required
                 />
               </div>
@@ -89,6 +104,7 @@ export default function JudgesLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-9"
+                  autoComplete="current-password"
                   required
                 />
               </div>
