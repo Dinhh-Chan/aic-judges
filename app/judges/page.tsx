@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, Trophy, Star, FileText, Presentation, Heart, ArrowLeft, Loader2 } from "lucide-react"
+import { Users, Trophy, Star, FileText, Presentation, Heart, ArrowLeft, Loader2, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -83,6 +83,7 @@ export default function JudgesPage() {
   const [teamScoreIds, setTeamScoreIds] = useState<Record<number, string>>({})
   const [requireIdForTeam, setRequireIdForTeam] = useState<number | null>(null)
   const [judgeScores, setJudgeScores] = useState<Record<number, any>>({}) // team_id -> score object
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const router = useRouter()
 
   const judgeProfile = useMemo(() => {
@@ -108,13 +109,13 @@ export default function JudgesPage() {
       setTeamsError(null)
       try {
         const url =
-          "https://unibackend.iuptit.com/api/v1/teams/teams-ver2?sort_by=id&order=desc&page_size=10&page=1"
+          "https://live-code-be.ript.vn/api/v1/teams?limit=10&offset=0"
         const res = await fetch(url, { headers: { accept: "application/json" }, method: "GET" })
         if (!res.ok) throw new Error(`Không thể tải danh sách đội (${res.status})`)
         const body = await res.json()
         if (!body?.success || !Array.isArray(body?.data)) throw new Error("Dữ liệu không hợp lệ")
 
-        const STATIC_BASE = "https://unibackend.iuptit.com/static/"
+        const STATIC_BASE = "https://live-code-be.ript.vn/static/"
         const ensureStaticUrl = (path?: string | null) => {
           if (!path) return null
           if (path.startsWith("http://") || path.startsWith("https://")) return path
@@ -217,7 +218,7 @@ export default function JudgesPage() {
     const fetchJudgeScores = async () => {
       if (!judgeProfile?.id) return
       try {
-        const url = `https://unibackend.iuptit.com/api/v1/team-scores/teams-score-ver2/judge/${encodeURIComponent(
+        const url = `https://live-code-be.ript.vn/api/v1/scores/judge/${encodeURIComponent(
           judgeProfile.id,
         )}`
         const res = await fetch(url, { headers: { accept: "application/json" } })
@@ -351,22 +352,9 @@ export default function JudgesPage() {
         social_impact: currentTeam.teamScores.social_impact ?? 0,
         total_score: calculateTeamTotal(currentTeam.teamScores),
         comment: comments,
-        code_leader: currentTeam.api.code_leader || "",
-        skills_learning_leader: currentTeam.memberScores[0]?.skills ?? 0,
-        inspiration_leader: currentTeam.memberScores[0]?.inspiration ?? 0,
-        code_member1: currentTeam.api.code_member1 || "",
-        skills_learning_member1: currentTeam.memberScores[1]?.skills ?? 0,
-        inspiration_member1: currentTeam.memberScores[1]?.inspiration ?? 0,
-        code_member2: currentTeam.api.code_member2 || "",
-        skills_learning_member2: currentTeam.memberScores[2]?.skills ?? 0,
-        inspiration_member2: currentTeam.memberScores[2]?.inspiration ?? 0,
-        code_member3: currentTeam.api.code_member3 || "",
-        skills_learning_member3: currentTeam.memberScores[3]?.skills ?? 0,
-        inspiration_member3: currentTeam.memberScores[3]?.inspiration ?? 0,
-        code_member4: currentTeam.api.code_member4 || "",
       }
 
-      const base = "https://unibackend.iuptit.com/api/v1/team-scores/teams-score-ver2"
+      const base = "https://live-code-be.ript.vn/api/v1/scores"
       const currentScoreId = teamScoreIds[currentTeam.id]
       const url = method === "PUT" ? `${base}/${encodeURIComponent(currentScoreId)}` : base
       const res = await fetch(url, {
@@ -410,6 +398,10 @@ export default function JudgesPage() {
         setTeamScoreIds((prev) => ({ ...prev, [currentTeam.id]: String(createdId) }))
         setRequireIdForTeam(null)
       }
+      
+      // Hiển thị thông báo thành công
+      setShowSuccessMessage(true)
+      setTimeout(() => setShowSuccessMessage(false), 3000)
     } catch (err: any) {
       setSaveError(err.message || "Không thể lưu điểm")
     } finally {
@@ -440,12 +432,17 @@ export default function JudgesPage() {
                 AIC 2025 - Giám Khảo
               </span>
             </div>
-            <Button variant="outline" asChild className="flex items-center gap-2 bg-transparent">
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4" />
-                Về Trang Chủ
-              </Link>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" asChild className="flex items-center gap-2 bg-transparent">
+                <Link href="/">
+                  <ArrowLeft className="h-4 w-4" />
+                  Về Trang Chủ
+                </Link>
+              </Button>
+              <Button asChild className="flex items-center gap-2">
+                <Link href="/results">Kết quả chung cuộc</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
@@ -453,9 +450,9 @@ export default function JudgesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent mb-4">
-            Bảng Điều Khiển Giám Khảo
+            Chấm Điểm Vòng Chung Kết
           </h1>
-          <p className="text-lg text-gray-600">AIC 2025 - Hệ thống chấm điểm cuộc thi</p>
+          <p className="text-lg text-gray-600">AIC 2025 - Top 3 đội xuất sắc nhất</p>
         </div>
 
         {loadingTeams && (
@@ -670,13 +667,26 @@ export default function JudgesPage() {
                                 ? ""
                                 : String(currentTeam.teamScores[criterion.key] as number)
                             }
-                            onChange={(e) =>
-                              updateTeamScore(
-                                selectedTeam,
-                                criterion.key,
-                                e.target.value === "" ? null : Number.parseInt(e.target.value) || 0,
-                              )
-                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value
+                              if (inputValue === "") {
+                                updateTeamScore(selectedTeam, criterion.key, null)
+                                return
+                              }
+                              const value = Number.parseInt(inputValue) || 0
+                              // Kiểm tra không vượt quá điểm tối đa
+                              if (value > criterion.maxScore) {
+                                // Nếu vượt quá, set về điểm tối đa
+                                updateTeamScore(selectedTeam, criterion.key, criterion.maxScore)
+                                e.target.value = String(criterion.maxScore)
+                              } else if (value < 0) {
+                                // Nếu âm, set về 0
+                                updateTeamScore(selectedTeam, criterion.key, 0)
+                                e.target.value = "0"
+                              } else {
+                                updateTeamScore(selectedTeam, criterion.key, value)
+                              }
+                            }}
                             className="w-20 text-center"
                           />
                           <span className="text-sm text-gray-500">/ {criterion.maxScore}</span>
@@ -697,6 +707,13 @@ export default function JudgesPage() {
                   {/* Xác nhận điểm đội */}
                   {saveError && (
                     <div className="text-sm text-red-700 bg-red-50 border border-red-100 rounded px-3 py-2">{saveError}</div>
+                  )}
+                  
+                  {showSuccessMessage && (
+                    <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-100 rounded px-3 py-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Đã hoàn thành chấm điểm cho đội {currentTeam.teamName}!
+                    </div>
                   )}
                   {requireIdForTeam === currentTeam.id && !teamScoreIds[currentTeam.id] && (
                     <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
@@ -766,14 +783,24 @@ export default function JudgesPage() {
                                 ? ""
                                 : String(currentTeam.memberScores[0][criterion.key] as number)
                             }
-                            onChange={(e) =>
-                              updateMemberScore(
-                                selectedTeam,
-                                0,
-                                criterion.key,
-                                e.target.value === "" ? null : Number.parseInt(e.target.value) || 0,
-                              )
-                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value
+                              if (inputValue === "") {
+                                updateMemberScore(selectedTeam, 0, criterion.key, null)
+                                return
+                              }
+                              const value = Number.parseInt(inputValue) || 0
+                              // Kiểm tra không vượt quá điểm tối đa (50 cho member criteria)
+                              if (value > criterion.maxScore) {
+                                updateMemberScore(selectedTeam, 0, criterion.key, criterion.maxScore)
+                                e.target.value = String(criterion.maxScore)
+                              } else if (value < 0) {
+                                updateMemberScore(selectedTeam, 0, criterion.key, 0)
+                                e.target.value = "0"
+                              } else {
+                                updateMemberScore(selectedTeam, 0, criterion.key, value)
+                              }
+                            }}
                             className="w-20 text-center"
                           />
                           <span className="text-sm text-gray-500">/ {criterion.maxScore}</span>
@@ -830,14 +857,24 @@ export default function JudgesPage() {
                                   ? ""
                                   : String(currentTeam.memberScores[index + 1][criterion.key] as number)
                               }
-                              onChange={(e) =>
-                                updateMemberScore(
-                                  selectedTeam,
-                                  index + 1,
-                                  criterion.key,
-                                  e.target.value === "" ? null : Number.parseInt(e.target.value) || 0,
-                                )
-                              }
+                              onChange={(e) => {
+                                const inputValue = e.target.value
+                                if (inputValue === "") {
+                                  updateMemberScore(selectedTeam, index + 1, criterion.key, null)
+                                  return
+                                }
+                                const value = Number.parseInt(inputValue) || 0
+                                // Kiểm tra không vượt quá điểm tối đa (50 cho member criteria)
+                                if (value > criterion.maxScore) {
+                                  updateMemberScore(selectedTeam, index + 1, criterion.key, criterion.maxScore)
+                                  e.target.value = String(criterion.maxScore)
+                                } else if (value < 0) {
+                                  updateMemberScore(selectedTeam, index + 1, criterion.key, 0)
+                                  e.target.value = "0"
+                                } else {
+                                  updateMemberScore(selectedTeam, index + 1, criterion.key, value)
+                                }
+                              }}
                               className="w-20 text-center"
                             />
                             <span className="text-sm text-gray-500">/ {criterion.maxScore}</span>

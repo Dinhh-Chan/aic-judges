@@ -31,8 +31,8 @@ export default function JudgesLoginPage() {
     e.preventDefault()
     setError(null)
     setLoading(true)
-    try {
-      const url = new URL("https://unibackend.iuptit.com/api/v1/judges/judges/authenticate")
+  try {
+      const url = new URL("https://live-code-be.ript.vn/api/v1/judges/authenticate")
       url.searchParams.set("username", username)
       url.searchParams.set("password", password)
 

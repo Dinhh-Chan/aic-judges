@@ -39,7 +39,7 @@ export default function SubmitPage() {
     }
     try {
       setLoading(true)
-      const url = `https://unibackend.iuptit.com/api/v1/teams/teams-ver2/check-leader-team?leader_code=${encodeURIComponent(teamData.studentId)}&Team_name=${encodeURIComponent(teamData.teamName)}`
+      const url = `https://live-code-be.ript.vn/api/v1/teams/teams-ver2/check-leader-team?leader_code=${encodeURIComponent(teamData.studentId)}&Team_name=${encodeURIComponent(teamData.teamName)}`
       const res = await fetch(url, { method: 'POST' })
       if (!res.ok) {
         setErrorMsg('Team không tồn tại danh sách, vui lòng liên hệ ban tổ chức để được hỗ trợ')
@@ -75,7 +75,7 @@ export default function SubmitPage() {
       if (slideLink) form.append('slide_link', slideLink)
       if (videoLink) form.append('video_link', videoLink)
       if (sourceCodeLink) form.append('source_code_link', sourceCodeLink)
-      const url = `https://unibackend.iuptit.com/api/v1/teams/teams-ver2/${teamId}`
+      const url = `https://live-code-be.ript.vn/api/v1/teams/teams-ver2/${teamId}`
       const res = await fetch(url, { method: 'PUT', body: form })
       if (!res.ok) {
         setErrorMsg('Cập nhật thông tin đội thất bại. Vui lòng thử lại hoặc liên hệ BTC.')
