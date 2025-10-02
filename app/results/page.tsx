@@ -197,16 +197,21 @@ export default function ResultsPage() {
                             Final: {teams[1].finalScore}
                           </div>
                         )}
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                          <Badge variant="outline" className="text-sm">
-                            {teams[1].memberCount} thành viên
-                          </Badge>
-                          {typeof teams[1].averageScore === 'number' && (
-                            <Badge variant="secondary" className="text-sm">
-                              Điểm TB: {teams[1].averageScore}
+                          <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <Badge variant="outline" className="text-sm">
+                              {teams[1].memberCount} thành viên
                             </Badge>
-                          )}
-                        </div>
+                            {typeof teams[1].averageScore === 'number' && (
+                              <Badge variant="secondary" className="text-sm">
+                                Điểm TB: {teams[1].averageScore}
+                              </Badge>
+                            )}
+                            {typeof teams[1].voteNumber === 'number' && (
+                              <Badge variant="outline" className="text-sm bg-blue-50">
+                                Votes: {teams[1].voteNumber}
+                              </Badge>
+                            )}
+                          </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -249,6 +254,11 @@ export default function ResultsPage() {
                             Điểm TB: {teams[0].averageScore}
                           </Badge>
                         )}
+                        {typeof teams[0].voteNumber === 'number' && (
+                          <Badge variant="outline" className="text-sm bg-yellow-50">
+                            Votes: {teams[0].voteNumber}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -280,16 +290,21 @@ export default function ResultsPage() {
                             Final: {teams[2].finalScore}
                           </div>
                         )}
-                        <div className="mt-4 flex flex-wrap justify-center gap-2">
-                          <Badge variant="outline" className="text-sm">
-                            {teams[2].memberCount} thành viên
-                          </Badge>
-                          {typeof teams[2].averageScore === 'number' && (
-                            <Badge variant="secondary" className="text-sm">
-                              Điểm TB: {teams[2].averageScore}
+                          <div className="mt-4 flex flex-wrap justify-center gap-2">
+                            <Badge variant="outline" className="text-sm">
+                              {teams[2].memberCount} thành viên
                             </Badge>
-                          )}
-                        </div>
+                            {typeof teams[2].averageScore === 'number' && (
+                              <Badge variant="secondary" className="text-sm">
+                                Điểm TB: {teams[2].averageScore}
+                              </Badge>
+                            )}
+                            {typeof teams[2].voteNumber === 'number' && (
+                              <Badge variant="outline" className="text-sm bg-orange-50">
+                                Votes: {teams[2].voteNumber}
+                              </Badge>
+                            )}
+                          </div>
                       </div>
                     </CardContent>
                   </Card>

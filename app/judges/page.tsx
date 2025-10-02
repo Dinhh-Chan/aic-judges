@@ -699,7 +699,7 @@ export default function JudgesPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Tổng điểm đội:</span>
                       <span className="text-2xl font-bold text-blue-600">
-                        {calculateTeamTotal(currentTeam.teamScores)} / 100
+                        {Math.round(calculateTeamTotal(currentTeam.teamScores))} / 100
                       </span>
                     </div>
                   </div>
@@ -910,7 +910,42 @@ export default function JudgesPage() {
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Các Đội Đã Chấm</CardTitle>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Các Đội Đã Chấm</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          if (judgeProfile?.id) {
+                            // Gọi lại API điểm khi người dùng nhấn nút làm mới
+                            const fetchJudgeScores = async () => {
+                              try {
+                                const url = `https://live-code-be.ript.vn/api/v1/scores/judge/${encodeURIComponent(
+                                  judgeProfile.id,
+                                )}`
+                                const res = await fetch(url, { headers: { accept: "application/json" } })
+                                if (!res.ok) return
+                                const body = await res.json()
+                                if (!body?.success || !Array.isArray(body?.data)) return
+                                const map: Record<number, any> = {}
+                                const idsMap: Record<number, string> = {}
+                                body.data.forEach((row: any) => {
+                                  if (row?.team_id) {
+                                    map[row.team_id] = row
+                                    if (row?.id) idsMap[row.team_id] = String(row.id)
+                                  }
+                                })
+                                setJudgeScores(map)
+                                if (Object.keys(idsMap).length) setTeamScoreIds((prev) => ({ ...prev, ...idsMap }))
+                              } catch {}
+                            }
+                            fetchJudgeScores()
+                          }
+                        }}
+                      >
+                        Làm mới
+                      </Button>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {Object.keys(judgeScores).length === 0 && (
@@ -921,49 +956,56 @@ export default function JudgesPage() {
                         .filter((t) => Boolean(judgeScores[t.id]))
                         .map((t) => {
                           const s = judgeScores[t.id]
-                          const total =
-                            (s?.creativity ?? 0) +
-                            (s?.feasibility ?? 0) +
-                            (s?.ai_effectiveness ?? 0) +
-                            (s?.presentation ?? 0) +
-                            (s?.social_impact ?? 0)
+                          // Parse string values to numbers
+                          const creativity = parseFloat(s?.creativity) || 0
+                          const feasibility = parseFloat(s?.feasibility) || 0
+                          const aiEffectiveness = parseFloat(s?.ai_effectiveness) || 0
+                          const presentation = parseFloat(s?.presentation) || 0
+                          const socialImpact = parseFloat(s?.social_impact) || 0
+                          const total = Math.round(creativity + feasibility + aiEffectiveness + presentation + socialImpact)
+                          
                           return (
                             <Card key={t.id} className="border-l-4 border-l-blue-500">
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="font-semibold">{t.teamName}</div>
-                                  <Badge variant="secondary">Tổng: {total} / 100</Badge>
+                                  <div className="flex gap-2">
+                                    <Badge variant="secondary">Tổng: {total} / 100</Badge>
+                                    {s?.vote_number && s.vote_number > 0 && (
+                                      <Badge variant="outline" className="bg-blue-50">Votes: {s.vote_number}</Badge>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="text-sm text-gray-700 space-y-1">
-                                  <div>• Sáng tạo: {s?.creativity ?? 0}</div>
-                                  <div>• Khả thi: {s?.feasibility ?? 0}</div>
-                                  <div>• Hiệu quả AI: {s?.ai_effectiveness ?? 0}</div>
-                                  <div>• Thuyết trình: {s?.presentation ?? 0}</div>
-                                  <div>• Tác động XH: {s?.social_impact ?? 0}</div>
+                                  <div>• Sáng tạo: {Math.round(creativity)}</div>
+                                  <div>• Khả thi: {Math.round(feasibility)}</div>
+                                  <div>• Hiệu quả AI: {Math.round(aiEffectiveness)}</div>
+                                  <div>• Thuyết trình: {Math.round(presentation)}</div>
+                                  <div>• Tác động XH: {Math.round(socialImpact)}</div>
                                 </div>
                                 <div className="mt-3 border-t pt-2">
                                   <div className="font-medium mb-2">Điểm cá nhân</div>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700">
                                     <div>
-                                      Leader: {(s?.skills_learning_leader ?? 0) + (s?.inspiration_leader ?? 0)} / 100
-                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_leader ?? 0}, Truyền cảm hứng: {s?.inspiration_leader ?? 0})</span>
+                                      Leader: {Math.round((parseFloat(s?.skills_learning_leader) || 0) + (parseFloat(s?.inspiration_leader) || 0))} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {Math.round(parseFloat(s?.skills_learning_leader) || 0)}, Truyền cảm hứng: {Math.round(parseFloat(s?.inspiration_leader) || 0)})</span>
                                     </div>
                                     <div>
-                                      Thành viên 1: {(s?.skills_learning_member1 ?? 0) + (s?.inspiration_member1 ?? 0)} / 100
-                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member1 ?? 0}, Truyền cảm hứng: {s?.inspiration_member1 ?? 0})</span>
+                                      Thành viên 1: {Math.round((parseFloat(s?.skills_learning_member1) || 0) + (parseFloat(s?.inspiration_member1) || 0))} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {Math.round(parseFloat(s?.skills_learning_member1) || 0)}, Truyền cảm hứng: {Math.round(parseFloat(s?.inspiration_member1) || 0)})</span>
                                     </div>
                                     <div>
-                                      Thành viên 2: {(s?.skills_learning_member2 ?? 0) + (s?.inspiration_member2 ?? 0)} / 100
-                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member2 ?? 0}, Truyền cảm hứng: {s?.inspiration_member2 ?? 0})</span>
+                                      Thành viên 2: {Math.round((parseFloat(s?.skills_learning_member2) || 0) + (parseFloat(s?.inspiration_member2) || 0))} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {Math.round(parseFloat(s?.skills_learning_member2) || 0)}, Truyền cảm hứng: {Math.round(parseFloat(s?.inspiration_member2) || 0)})</span>
                                     </div>
                                     <div>
-                                      Thành viên 3: {(s?.skills_learning_member3 ?? 0) + (s?.inspiration_member3 ?? 0)} / 100
-                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member3 ?? 0}, Truyền cảm hứng: {s?.inspiration_member3 ?? 0})</span>
+                                      Thành viên 3: {Math.round((parseFloat(s?.skills_learning_member3) || 0) + (parseFloat(s?.inspiration_member3) || 0))} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {Math.round(parseFloat(s?.skills_learning_member3) || 0)}, Truyền cảm hứng: {Math.round(parseFloat(s?.inspiration_member3) || 0)})</span>
                                     </div>
                                     {/** Thành viên 4 chỉ có mã code_member4, không có điểm inspiration/skills trong output mẫu? Vẫn hiển thị nếu có dữ liệu khác 0 */}
                                     <div>
-                                      Thành viên 4: {(s?.skills_learning_member4 ?? 0) + (s?.inspiration_member4 ?? 0)} / 100
-                                      <span className="text-gray-500"> (Kỹ năng: {s?.skills_learning_member4 ?? 0}, Truyền cảm hứng: {s?.inspiration_member4 ?? 0})</span>
+                                      Thành viên 4: {Math.round((parseFloat(s?.skills_learning_member4) || 0) + (parseFloat(s?.inspiration_member4) || 0))} / 100
+                                      <span className="text-gray-500"> (Kỹ năng: {Math.round(parseFloat(s?.skills_learning_member4) || 0)}, Truyền cảm hứng: {Math.round(parseFloat(s?.inspiration_member4) || 0)})</span>
                                     </div>
                                   </div>
                                 </div>
